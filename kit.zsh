@@ -239,7 +239,7 @@ function _kit_cmd_run() {
   fi
 
   shift
-  local script_args=$@
+  local script_args=($@)
 
   if [[ $script_name == "." ]]; then
     local current_path=$(pwd)
