@@ -458,23 +458,57 @@ function _kit_cmd_remove() {
 }
 
 function _kit_cmd_list() {
-  local scripts=($(_kit_util_get_script_names))
+  local usage=(
+    "$(_kit_info 'Lists the available scripts. By default, it lists all scripts that have been created.')"
+    "$(_kit_info 'If you run the command with \".\" (e.g. kit list .), it lists the scripts associated with the current directory.')"
+    "$(_kit_info 'Use the --json option to get the output in JSON format.')"
 
-  if [[ "$1" != "json" ]]; then
+    "\nUsage: "
+    "  $(_kit_highlight 'kit list [.] [-j|--json]')"
+    "  $(_kit_highlight 'kit list [-h|--help]')"
+  )
+
+  local list_path="*"
+  local format=""
+
+  if [[ ! -z "$1" && "$1" != -* ]]; then
+    list_path="$1"
+    shift
+  fi
+
+  local flag_help
+  local flag_json
+  zparseopts -D -F -K -- \
+    {h,-help}=flag_help \
+    {j,-json}=flag_json ||
+    return 1
+
+  if [[ -n "$flag_help" ]]; then
+    print -l $usage
+    return
+  fi
+
+  local scripts
+  if [[ "$list_path" == "*" ]]; then
+    scripts=($(_kit_util_get_script_names))
+  else
+    local current_path=$(pwd)
+    scripts=($(jq -r --arg path "$current_path" 'if .[$path] != null then .[$path][] else empty end' $(_kit_util_get_path_mapping_path)))
+  fi
+
+  if [[ ! -z "$flag_json" ]]; then
+    local data="{}"
+    for script in "${scripts[@]}"; do
+      manifest=$(_kit_cmd_manifest "$script")
+      data=$(echo "$data" | jq --arg script "$script" --argjson manifest "$manifest" '. + {($script): $manifest}')
+    done
+
+    echo $data | jq .
+  else
     for script in "${scripts[@]}"; do
       echo $script
     done
-
-    return 0
   fi
-
-  local data="{}"
-  for script in "${scripts[@]}"; do
-    manifest=$(_kit_cmd_manifest "$script")
-    data=$(echo "$data" | jq --arg script "$script" --argjson manifest "$manifest" '. + {($script): $manifest}')
-  done
-
-  echo $data | jq .
 }
 
 function _kit_cmd_cd() {
