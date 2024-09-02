@@ -54,6 +54,11 @@ function kit() {
       _kit_cmd_list "$@"
       ;;
 
+    cd)
+      shift
+      _kit_cmd_cd "$@"
+      ;;
+
     help|--help|-h)
       _kit_help
       ;;
@@ -472,6 +477,28 @@ function _kit_cmd_list() {
   echo $data | jq .
 }
 
+function _kit_cmd_cd() {
+  local script_name=$1
+
+  if [[ -z "$script_name" ]]; then
+    echo "$(_kit_info 'No script name provided.')"
+    echo "$(_kit_info 'Please specify the name of the script you want to switch to.')"
+
+    return 1;
+  fi
+
+  local script_path="$(_kit_util_get_repo_path)/$script_name"
+
+  if [[ ! -d $script_path ]]; then
+    echo "$(_kit_info "The script '$script_name' does not exist in the repository.")"
+    echo
+    echo "$(_kit_info 'You can list available scripts using') $(_kit_highlight 'kit list')"
+    return 1
+  fi
+
+  cd $script_path
+}
+
 function _kit_util_run_script_by_name() {
   local script_name=$1
   shift
@@ -577,8 +604,9 @@ function _kit_help() {
   echo "  $(_kit_highlight 'open')        Open the specified script in the default editor"
   echo "  $(_kit_highlight 'manifest')    Update the manifest file for an existing script"
   echo "  $(_kit_highlight 'fix')         Synchronize the path mappings by removing outdated or broken entries"
-  echo "  $(_kit_highlight 'remove')      Removes one or more scripts from the repo"
+  echo "  $(_kit_highlight 'remove')      Remove one or more scripts from the repo"
   echo "  $(_kit_highlight 'list')        List available scripts"
+  echo "  $(_kit_highlight 'cd')          Change to the script's directory'"
   echo
   echo "Options:"
   echo "  -h, --help      Show this help message"
@@ -614,13 +642,14 @@ _kit_completion() {
 
   case $state in
     subcmd)
-      compadd init create run search open manifest fix remove
+      compadd init create run open manifest fix remove cd
       ;;
     script)
       if [[ $words[2] == "run" || 
             $words[2] == "open" || 
             $words[2] == "manifest" || 
-            $words[2] == "remove" ]]; then
+            $words[2] == "remove" || 
+            $words[2] == "cd" ]]; then
         local scripts=($(_kit_util_get_script_names))
 
         compadd "$@" $scripts
