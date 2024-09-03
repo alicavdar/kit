@@ -151,9 +151,6 @@ function _kit_cmd_create() {
     echo
     echo "$(_kit_info 'For more details, use') $(_kit_highlight 'kit create --help')"
 
-    local selected_scripts=$(printf "%s\n" "${scripts[@]}" | fzf --height 40% --reverse --border --prompt "Select a script: " --multi)
-    echo $selected_scripts
-
     return 1
   fi
 
