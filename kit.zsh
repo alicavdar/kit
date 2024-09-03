@@ -381,6 +381,13 @@ function _kit_cmd_fix() {
         updated_path_mappings=$(echo $updated_path_mappings | jq --arg path "$mapped_path" --arg script_name "$script_name" '.[$path] |= map(select(. != $script_name))')
       fi
     done
+
+    local mapped_path_scripts_length=$(echo "$updated_path_mappings" | jq --arg path "$mapped_path" '.[$path] | length')
+
+    # If a path doesn't have any scripts, remove the key
+    if [[ "$mapped_path_scripts_length" -eq 0 ]]; then
+      updated_path_mappings=$(echo "$updated_path_mappings" | jq --arg path "$mapped_path" 'del(.[$path])')
+    fi
   done
 
   # Save the updated path mappings
