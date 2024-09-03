@@ -640,7 +640,7 @@ function _kit_help() {
   echo "  $(_kit_highlight 'fix')         Synchronize the path mappings by removing outdated or broken entries"
   echo "  $(_kit_highlight 'remove')      Remove one or more scripts from the repo"
   echo "  $(_kit_highlight 'list')        List available scripts"
-  echo "  $(_kit_highlight 'cd')          Change to the script's directory'"
+  echo "  $(_kit_highlight 'cd')          Change to the script's directory"
   echo
   echo "Options:"
   echo "  -h, --help      Show this help message"
