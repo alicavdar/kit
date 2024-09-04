@@ -558,7 +558,12 @@ function _kit_util_run_script_by_name() {
   if [[ -z "$exec" || "$exec" == "null" ]]; then
     "$script_path/$entry" "$@"
   else
-    "$exec" "$script_path/$entry" $@
+    if [[ -z "$entry" ]]; then
+      eval "$exec" $@
+    else
+      eval "$exec" "$script_path/$entry" $@
+    fi
+ 
   fi
 }
 
