@@ -137,6 +137,7 @@ function _kit_cmd_create() {
     "Usage: "
     "  $(_kit_highlight 'kit create <script_name>')"
     "  $(_kit_highlight 'kit create <script_name> [-p|--path=<path>]')"
+    "  $(_kit_highlight 'kit create <script_name> [-c|--cmd=<command>]')"
     "  $(_kit_highlight 'kit create <script_name> [-d|--desc=<description>]')"
     "  $(_kit_highlight 'kit create [-h|--help]')"
   )
@@ -157,11 +158,13 @@ function _kit_cmd_create() {
   shift
 
   local flag_help
+  local arg_cmd
   local arg_path="."
   local arg_about=""
 
   zparseopts -D -F -K -- \
     {h,-help}=flag_help \
+    {c,-cmd}=flag_cmd \
     {a,-about}:=arg_about \
     {p,-path}:=arg_path || {
       echo "$(_kit_error 'Failed to parse options')"
@@ -194,7 +197,21 @@ function _kit_cmd_create() {
   fi
 
   mkdir $script_path
-  jq --arg about "$arg_about[-1]" -n '{ about: $about, entry: "", exec: "" }' > "$script_path/manifest.json"
+
+  local exec=""
+  local entry=""
+
+  if [[ -n "$flag_cmd" ]]; then
+    local exec="."
+    local entry="run.sh"
+
+    touch "$script_path/run.sh"
+  fi
+
+  jq --arg about "$arg_about[-1]" \
+     --arg exec "$exec" \
+     --arg entry "$entry" \
+     -n '{ about: $about, exec: $exec, entry: $entry}' > "$script_path/manifest.json"
 
   _kit_util_update_path_mappings $script_name $path_to_map
 
@@ -275,6 +292,12 @@ function _kit_cmd_open() {
     echo
     echo "$(_kit_info 'You can list available scripts using') $(_kit_highlight 'kit list')"
     return 1
+  fi
+
+  local entry=$(jq -r .entry $script_path/manifest.json)
+
+  if [[ -n "$entry" && -e "$script_path/$entry" ]]; then
+    script_path+="/$entry"
   fi
 
   "$editor" $script_path
