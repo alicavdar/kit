@@ -49,7 +49,7 @@ function kit() {
       _kit_cmd_remove "$@"
       ;;
 
-    list)
+    ls|list)
       shift
       _kit_cmd_list "$@"
       ;;
