@@ -44,7 +44,7 @@ function kit() {
       _kit_cmd_fix "$@"
       ;;
 
-    remove)
+    rm|remove)
       shift
       _kit_cmd_remove "$@"
       ;;
@@ -672,8 +672,8 @@ function _kit_help() {
   echo "  $(_kit_highlight 'open')        Open the specified script in the default editor"
   echo "  $(_kit_highlight 'manifest')    Update the manifest file for an existing script"
   echo "  $(_kit_highlight 'fix')         Synchronize the path mappings by removing outdated or broken entries"
-  echo "  $(_kit_highlight 'remove')      Remove one or more scripts from the repo"
-  echo "  $(_kit_highlight 'list')        List available scripts"
+  echo "  $(_kit_highlight 'rm|remove')   Remove one or more scripts from the repo"
+  echo "  $(_kit_highlight 'ls|list')     List available scripts"
   echo "  $(_kit_highlight 'cd')          Change to the script's directory"
   echo
   echo "Options:"
@@ -710,13 +710,14 @@ _kit_completion() {
 
   case $state in
     subcmd)
-      compadd init create run open manifest fix remove cd
+      compadd init create run open manifest fix remove list cd
       ;;
     script)
       if [[ $words[2] == "run" || 
             $words[2] == "open" || 
             $words[2] == "manifest" || 
             $words[2] == "remove" || 
+            $words[2] == "rm" ||
             $words[2] == "cd" ]]; then
         local scripts=($(_kit_util_get_script_names))
 
