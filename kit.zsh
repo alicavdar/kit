@@ -98,7 +98,7 @@ function _kit_cmd_init() {
   local config_path=$(_kit_util_get_user_config_path)
 
   if [[ ! -d "$config_path/kit" ]]; then
-    mkdir -p "$config_path/kit" || {
+    command mkdir -p "$config_path/kit" || {
       echo "$(_kit_error 'Failed to create configuration directory')"
       return 1
     }
@@ -116,7 +116,7 @@ function _kit_cmd_init() {
   fi
 
   if [[ ! -d "$repo_path" ]]; then
-    mkdir -p $repo_path || {
+    command mkdir -p $repo_path || {
       echo "$(_kit_error 'Failed to create repository path')"
       return 1
     }
@@ -196,7 +196,7 @@ function _kit_cmd_create() {
     path_to_map=$arg_path_value
   fi
 
-  mkdir $script_path
+  command mkdir $script_path
 
   local exec=""
   local entry=""
@@ -222,8 +222,10 @@ function _kit_cmd_create() {
   echo -e "\nTo open the script folder, run the following command:"
   echo "  $(_kit_highlight 'kit open') $script_name"
 
-  echo -e "\nTo configure the entry point and execution command, use:"
-  echo "  $(_kit_highlight 'kit manifest') $script_name $(_kit_highlight '--exec . --entry run.sh')"
+  if [[ -z "$flag_cmd" ]]; then
+    echo -e "\nTo configure the entry point and execution command, use:"
+    echo "  $(_kit_highlight 'kit manifest') $script_name $(_kit_highlight '--exec . --entry run.sh')"
+  fi
 }
 
 function _kit_cmd_run() {
@@ -360,7 +362,7 @@ function _kit_cmd_manifest() {
     return 1
   fi
 
-  local manifest_content=$(cat $manifest_file)
+  local manifest_content=$(command cat $manifest_file)
 
   if [[ ! -z "$script_exec" ]]; then
     manifest_content=$(echo $manifest_content | jq --arg value "$script_exec" '.exec = $value')
@@ -379,8 +381,8 @@ function _kit_cmd_manifest() {
 }
 
 function _kit_cmd_fix() {
-  local path_mappings=$(cat $(_kit_util_get_path_mapping_path))
-  local updated_path_mappings=$(cat $(_kit_util_get_path_mapping_path))
+  local path_mappings=$(command cat $(_kit_util_get_path_mapping_path))
+  local updated_path_mappings=$(command cat $(_kit_util_get_path_mapping_path))
 
   # Get all paths from the mappings
   local paths=($(echo $path_mappings | jq -r 'keys[]'))
@@ -453,7 +455,7 @@ function _kit_cmd_remove() {
     if [[ "$reply" =~ ^[Yy]$ || "$reply" == "yes" ]]; then
       for selected_script in ${(f)selected_scripts}; do
         local script_path="$(_kit_util_get_repo_path)/$selected_script"
-        rm -r $script_path
+        command rm -r $script_path
       done
 
       echo "\n$(_kit_success 'The selected scripts have been removed from the repo.')"
@@ -475,7 +477,7 @@ function _kit_cmd_remove() {
   read -r reply
 
   if [[ "$reply" =~ ^[Yy]$ || "$reply" == "yes" ]]; then
-    rm -r $script_path
+    command rm -r $script_path
     echo "$(_kit_success 'The script has been removed successfully.')"
     _kit_cmd_fix
   else
@@ -557,7 +559,7 @@ function _kit_cmd_cd() {
     return 1
   fi
 
-  cd $script_path
+  command cd $script_path
 }
 
 function _kit_util_run_script_by_name() {
@@ -573,7 +575,7 @@ function _kit_util_run_script_by_name() {
   fi
 
   local manifest_file="$(_kit_util_get_repo_path)/$script_name/manifest.json"
-  local manifest=$(cat $manifest_file)
+  local manifest=$(command cat $manifest_file)
 
   local exec=$(echo $manifest | jq -r --arg field "exec" '.[$field]')
   local entry=$(echo $manifest | jq -r --arg field "entry" '.[$field]')
@@ -636,7 +638,7 @@ function _kit_util_get_default_editor() {
 
 function _kit_util_get_config() {
   local config_path=$(_kit_util_get_user_config_path)
-  cat "$config_path/kit/config.json"
+  command cat "$config_path/kit/config.json"
 }
 
 function _kit_util_get_repo_path() {
@@ -652,7 +654,7 @@ function _kit_util_get_path_mapping_path() {
 }
 
 function _kit_util_get_script_names() {
-  echo $(zsh --no-rcs -c "ls -d $(_kit_util_get_repo_path)/*/" 2>/dev/null | xargs -n 1 basename)
+  echo $(command ls -d $(_kit_util_get_repo_path)/*/ | xargs -n 1 basename)
 }
 
 function _kit_help() {
